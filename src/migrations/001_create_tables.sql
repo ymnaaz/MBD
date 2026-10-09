@@ -1,3 +1,4 @@
+-- table pelanggan
 CREATE TABLE pelanggan (
     id_pelanggan INT AUTO_INCREMENT PRIMARY KEY,
     nama VARCHAR(100) NOT NULL,
@@ -6,6 +7,8 @@ CREATE TABLE pelanggan (
     tanggal_dibuat DATE NOT NULL
 );
 
+
+-- table mobil
 CREATE TABLE mobil (
     id_mobil INT AUTO_INCREMENT PRIMARY KEY,
     nomor_plat VARCHAR(15) NOT NULL UNIQUE,
@@ -14,10 +17,11 @@ CREATE TABLE mobil (
     tahun_produksi INT NOT NULL,
     tarif_sewa_per_hari DECIMAL(12,2) NOT NULL,
     status ENUM('tersedia', 'disewa', 'maintenance')
-        NOT NULL DEFAULT 'tersedia',
+        NOT NULL DEFAULT 'tersedia', -- jika tdk diisi anggap tersedia
     tanggal_ditambahkan DATE NOT NULL
 );
 
+-- pembayaran
 CREATE TABLE pembayaran (
     id_pembayaran INT AUTO_INCREMENT PRIMARY KEY,
     metode_pembayaran VARCHAR(30) NOT NULL,
@@ -27,14 +31,21 @@ CREATE TABLE pembayaran (
         NOT NULL DEFAULT 'menunggu'
 );
 
+
+-- table peminjaman
 CREATE TABLE peminjaman (
     id_peminjaman INT AUTO_INCREMENT PRIMARY KEY,
+
     id_pelanggan INT NOT NULL,
     id_mobil INT NOT NULL,
     id_pembayaran INT,
+
     tanggal_rencana_kembali DATE NOT NULL,
+    tanggal_pengembalian DATE NULL,
+
     status ENUM('dipinjam', 'dikembalikan', 'dibatalkan')
         NOT NULL DEFAULT 'dipinjam',
+
     tanggal_dibuat DATE NOT NULL,
     total_biaya DECIMAL(12,2) NOT NULL DEFAULT 0,
     tanggal_pinjam DATE NOT NULL,

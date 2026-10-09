@@ -1,7 +1,5 @@
--- =====================================================
--- FUNCTION 1: Menghitung total biaya sewa
--- =====================================================
-
+-- hitung_total_sewa mengambil tarif mobil dari tabel mobil, menghitung lama sewa, 
+-- lalu menghasilkan total biaya. Function ini digunakan oleh Procedure peminjaman.
 DROP FUNCTION IF EXISTS hitung_total_sewa;
 
 DELIMITER //
@@ -12,7 +10,8 @@ CREATE FUNCTION hitung_total_sewa(
     p_tanggal_kembali DATE
 )
 RETURNS DECIMAL(12,2)
-DETERMINISTIC
+NOT DETERMINISTIC
+READS SQL DATA
 BEGIN
     DECLARE tarif DECIMAL(12,2);
     DECLARE jumlah_hari INT;
@@ -31,33 +30,31 @@ BEGIN
     IF jumlah_hari <= 0 THEN
         SET jumlah_hari = 1;
     END IF;
-
     SET total = tarif * jumlah_hari;
-
     RETURN total;
 END //
 
-DELIMITER ;
 
-
--- =====================================================
--- FUNCTION 2: Menghitung denda keterlambatan
--- =====================================================
+-- hitung_denda menghitung denda sebesar Rp100.000 per hari keterlambatan. 
+-- Function ini akan digunakan oleh Procedure pengembalian.
 
 DROP FUNCTION IF EXISTS hitung_denda;
-
-DELIMITER //
 
 CREATE FUNCTION hitung_denda(
     p_keterlambatan_hari INT
 )
 RETURNS DECIMAL(12,2)
 DETERMINISTIC
+NO SQL
 BEGIN
     DECLARE denda DECIMAL(12,2);
 
-    SET denda = p_keterlambatan_hari * 100000;
-
+    IF p_keterlambatan_hari IS NULL
+       OR p_keterlambatan_hari <= 0 THEN
+        SET denda = 0;
+    ELSE
+        SET denda = p_keterlambatan_hari * 100000;
+    END IF;
     RETURN denda;
 END //
 
