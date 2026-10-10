@@ -44,7 +44,7 @@ VALUES
 ('QRIS', '2026-10-09', 1200000, 'berhasil'),
 ('Transfer', '2026-10-08', 1600000, 'berhasil'),
 ('Tunai', '2026-10-09', 2400000, 'berhasil'),
-('QRIS', '2026-10-09', 1350000, 'menunggu'),
+('QRIS', '2026-10-09', 1350000, 'pending'),
 ('Transfer', '2026-10-08', 760000, 'berhasil'),
 ('Tunai', '2026-10-08', 1200000, 'gagal'),
 ('QRIS', '2026-10-07', 950000, 'berhasil');
@@ -55,27 +55,18 @@ INSERT INTO peminjaman
 (id_pelanggan, id_mobil, id_pembayaran, tanggal_pinjam, tanggal_rencana_kembali, tanggal_pengembalian, status, total_biaya, keterlambatan_hari, denda, catatan, tanggal_dibuat)
 VALUES
 (1, 1, 1, '2026-09-07', '2026-09-09', '2026-09-09', 'dikembalikan', 700000, 0, 0, 'Mobil dikembalikan tepat waktu', '2026-09-07'),
-
 (2, 2, 2, '2026-09-07', '2026-09-09', '2026-09-09', 'dikembalikan', 600000, 0, 0, 'Kondisi mobil bersih', '2026-09-07'),
-
 (3, 3, 3, '2026-09-07', '2026-09-09', '2026-09-09', 'dikembalikan', 1000000, 0, 0, 'Perjalanan luar kota', '2026-09-07'),
-
 (4, 4, 4, '2026-10-07', '2026-10-11', NULL, 'dipinjam', 1320000, 0, 0, 'Sewa 4 hari', '2026-10-07'),
-
 (5, 5, 5, '2026-10-08', '2026-10-12', NULL, 'dipinjam', 1520000, 0, 0, 'Sewa 4 hari', '2026-10-08'),
-
 (6, 6, 6, '2026-10-09', '2026-10-12', NULL, 'dipinjam', 1200000, 0, 0, 'Untuk acara keluarga', '2026-10-09'),
-
 (7, 8, 7, '2026-10-08', '2026-10-10', NULL, 'dipinjam', 1600000, 0, 0, 'Sewa 2 hari', '2026-10-08'),
-
 (8, 10, 8, '2026-10-09', '2026-10-11', NULL, 'dipinjam', 2400000, 0, 0, 'Untuk pernikahan', '2026-10-09'),
-
 (9, 11, 9, '2026-10-09', '2026-10-12', NULL, 'dipinjam', 1350000, 0, 0, 'Menunggu pembayaran', '2026-10-09'),
+(10, 9, 12, '2026-10-04', '2026-10-05', '2026-10-07', 'dikembalikan', 750000, 2, 750000, 'Terlambat mengembalikan mobil', '2026-10-04');
 
-(10, 9, 12, '2026-10-04', '2026-10-05', '2026-10-07', 'dikembalikan', 750000, 2, 200000, 'Terlambat mengembalikan mobil', '2026-10-04');
 
-
--- mengubah status mobil yang sedang dipinjam
+-- update status mobil yang sedang dipinjam
 UPDATE mobil
-SET status = 'disewa'
+SET status = 'dipinjam'
 WHERE id_mobil IN (4, 5, 6, 8, 10, 11);

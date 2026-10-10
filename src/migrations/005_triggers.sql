@@ -1,22 +1,46 @@
 -- =====================================================
--- TRIGGER: Menghitung denda otomatis
+-- MENGHAPUS TRIGGER LAMA JIKA SUDAH ADA
 -- =====================================================
 
-DROP TRIGGER IF EXISTS hitung_denda_peminjaman;
+DROP TRIGGER IF EXISTS trg_mobil_dipinjam;
+DROP TRIGGER IF EXISTS trg_mobil_kembali;
 
 DELIMITER //
 
-CREATE TRIGGER hitung_denda_peminjaman
-BEFORE INSERT ON peminjaman
+
+-- =====================================================
+-- TRIGGER 1: Mengubah status mobil menjadi disewa
+-- saat peminjaman baru ditambahkan
+-- =====================================================
+
+CREATE TRIGGER trg_mobil_dipinjam
+AFTER INSERT ON peminjaman
 FOR EACH ROW
 BEGIN
-    -- Menggunakan Function untuk menghitung denda
-    IF NEW.keterlambatan_hari > 0 THEN
-        SET NEW.denda = hitung_denda(
-            NEW.keterlambatan_hari
-        );
-    ELSE
-        SET NEW.denda = 0;
+    IF NEW.status = 'dipinjam' THEN
+        UPDATE mobil
+        SET status = 'disewa'
+        WHERE id_mobil = NEW.id_mobil;
+    END IF;
+END //
+
+
+-- =====================================================
+-- TRIGGER 2: Mengubah status mobil menjadi tersedia
+-- saat peminjaman dikembalikan
+-- =====================================================
+
+CREATE TRIGGER trg_mobil_kembali
+AFTER UPDATE ON peminjaman
+FOR EACH ROW
+BEGIN
+    IF NEW.status = 'dikembalikan'
+       AND OLD.status = 'dipinjam' THEN
+
+        UPDATE mobil
+        SET status = 'tersedia'
+        WHERE id_mobil = NEW.id_mobil;
+
     END IF;
 END //
 
