@@ -78,6 +78,7 @@ BEGIN
     DECLARE v_jumlah_mobil INT DEFAULT 0;
     DECLARE v_total DECIMAL(12,2);
 
+    -- Membatalkan transaksi jika terjadi error
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         ROLLBACK;
@@ -94,7 +95,7 @@ BEGIN
         SET MESSAGE_TEXT = 'Tanggal peminjaman tidak valid';
     END IF;
 
-    -- Memastikan mobil terdaftar
+    -- Memeriksa keberadaan mobil melalui View
     SELECT COUNT(*)
     INTO v_jumlah_mobil
     FROM view_daftar_mobil
@@ -105,12 +106,14 @@ BEGIN
         SET MESSAGE_TEXT = 'Mobil tidak ditemukan';
     END IF;
 
-    -- Memeriksa status mobil
+    -- Memeriksa dan mengunci data mobil selama transaksi
     SELECT status
     INTO v_status_mobil
-    FROM view_daftar_mobil
-    WHERE id_mobil = p_id_mobil;
+    FROM mobil
+    WHERE id_mobil = p_id_mobil
+    FOR UPDATE;
 
+    -- Memastikan mobil tersedia untuk disewa
     IF v_status_mobil <> 'tersedia' THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Mobil tidak tersedia untuk disewa';
@@ -128,31 +131,32 @@ BEGIN
         id_pelanggan,
         id_mobil,
         id_pembayaran,
+        tanggal_pinjam,
         tanggal_rencana_kembali,
         tanggal_pengembalian,
         status,
-        tanggal_dibuat,
         total_biaya,
-        tanggal_pinjam,
         keterlambatan_hari,
         denda,
-        catatan
+        catatan,
+        tanggal_dibuat
     )
     VALUES (
         p_id_pelanggan,
         p_id_mobil,
         p_id_pembayaran,
+        p_tanggal_pinjam,
         p_tanggal_kembali,
         NULL,
         'dipinjam',
-        CURDATE(),
         v_total,
-        p_tanggal_pinjam,
         0,
         0,
-        'Peminjaman baru'
+        'Peminjaman baru',
+        CURDATE()
     );
 
+    -- Trigger akan mengubah status mobil menjadi dipinjam
     COMMIT;
 
     SELECT
@@ -178,6 +182,7 @@ BEGIN
     DECLARE v_jumlah_peminjaman INT DEFAULT 0;
     DECLARE v_denda DECIMAL(12,2);
 
+    -- Membatalkan transaksi jika terjadi error
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
     BEGIN
         ROLLBACK;
@@ -192,7 +197,7 @@ BEGIN
         SET MESSAGE_TEXT = 'Tanggal pengembalian wajib diisi';
     END IF;
 
-    -- Memastikan peminjaman masih aktif
+    -- Memeriksa peminjaman yang masih aktif melalui View
     SELECT COUNT(*)
     INTO v_jumlah_peminjaman
     FROM view_peminjaman
@@ -205,33 +210,28 @@ BEGIN
             'Peminjaman tidak ditemukan atau sudah dikembalikan';
     END IF;
 
-    -- Mengambil data peminjaman dan mobil
+    -- Mengambil data peminjaman melalui View
     SELECT
-        vp.status_peminjaman,
-        vp.tanggal_rencana_kembali,
-        m.id_mobil
+        status_peminjaman,
+        tanggal_pinjam,
+        tanggal_rencana_kembali,
+        id_mobil
     INTO
         v_status_peminjaman,
+        v_tanggal_pinjam,
         v_tanggal_rencana,
         v_id_mobil
-    FROM view_peminjaman vp
-    JOIN mobil m
-        ON m.nomor_plat = vp.nomor_plat
-    WHERE vp.id_peminjaman = p_id_peminjaman
+    FROM view_peminjaman
+    WHERE id_peminjaman = p_id_peminjaman
     LIMIT 1;
 
     -- Memastikan tanggal pengembalian tidak sebelum tanggal pinjam
-    SELECT tanggal_pinjam
-    INTO v_tanggal_pinjam
-    FROM peminjaman
-    WHERE id_peminjaman = p_id_peminjaman;
-
     IF p_tanggal_pengembalian < v_tanggal_pinjam THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Tanggal pengembalian tidak valid';
     END IF;
 
-    -- Menghitung hari keterlambatan
+    -- Menghitung jumlah hari keterlambatan
     SET v_keterlambatan = GREATEST(
         DATEDIFF(
             p_tanggal_pengembalian,
@@ -256,6 +256,7 @@ BEGIN
         catatan = 'Mobil telah dikembalikan'
     WHERE id_peminjaman = p_id_peminjaman;
 
+    -- Trigger akan mengubah status mobil menjadi tersedia
     COMMIT;
 
     SELECT

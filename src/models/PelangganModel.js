@@ -8,4 +8,4 @@ class PelangganModel {
     }
 }
 
-module.exports = PelangganModel;
+module.exports = PelangganModel; 

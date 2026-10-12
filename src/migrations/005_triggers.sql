@@ -1,35 +1,23 @@
--- =====================================================
--- MENGHAPUS TRIGGER LAMA JIKA SUDAH ADA
--- =====================================================
-
+-- Menghapus Trigger lama jika sudah ada
 DROP TRIGGER IF EXISTS trg_mobil_dipinjam;
 DROP TRIGGER IF EXISTS trg_mobil_kembali;
 
 DELIMITER //
 
-
--- =====================================================
--- TRIGGER 1: Mengubah status mobil menjadi disewa
--- saat peminjaman baru ditambahkan
--- =====================================================
-
+-- Trigger mengubah status mobil saat peminjaman dibuat
 CREATE TRIGGER trg_mobil_dipinjam
 AFTER INSERT ON peminjaman
 FOR EACH ROW
 BEGIN
     IF NEW.status = 'dipinjam' THEN
         UPDATE mobil
-        SET status = 'disewa'
+        SET status = 'dipinjam'
         WHERE id_mobil = NEW.id_mobil;
     END IF;
 END //
 
 
--- =====================================================
--- TRIGGER 2: Mengubah status mobil menjadi tersedia
--- saat peminjaman dikembalikan
--- =====================================================
-
+-- Trigger mengubah status mobil saat pengembalian selesai
 CREATE TRIGGER trg_mobil_kembali
 AFTER UPDATE ON peminjaman
 FOR EACH ROW
@@ -40,7 +28,6 @@ BEGIN
         UPDATE mobil
         SET status = 'tersedia'
         WHERE id_mobil = NEW.id_mobil;
-
     END IF;
 END //
 
