@@ -1,0 +1,10 @@
+$kind: http-request
+description: Memproses pengembalian untuk peminjaman ID 1. Ganti ID sesuai kebutuhan dan isi body sesuai field yang dibaca peminjamanController.kembalikan sebelum menekan Send.
+url: "{{base_url}}/api/peminjaman/1/kembali"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: "{}"
+order: 4000

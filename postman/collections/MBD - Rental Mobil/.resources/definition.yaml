@@ -1,0 +1,4 @@
+$kind: collection
+description: Collection dari endpoint yang sudah ada pada pelangganRoutes.js, mobilRoutes.js, dan peminjamanRoutes.js. Request POST/PUT memakai body {} sebagai placeholder; sesuaikan dengan field yang dibaca controller sebelum menekan Send.
+variables:
+  base_url: http://localhost:3000

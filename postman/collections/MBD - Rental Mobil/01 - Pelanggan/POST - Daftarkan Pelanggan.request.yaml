@@ -1,0 +1,10 @@
+$kind: http-request
+description: Body masih placeholder {}. Sebelum Send, isi sesuai field yang dibaca pelangganController.create; berdasarkan tabel pelanggan, kemungkinan field-nya nama, nomor_telepon, dan alamat.
+url: "{{base_url}}/api/pelanggan"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: "{}"
+order: 3000

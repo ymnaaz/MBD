@@ -1,0 +1,5 @@
+$kind: http-request
+description: Contoh melihat satu mobil. Ganti angka 1 dengan ID mobil yang ingin diperiksa.
+url: "{{base_url}}/api/mobil/1"
+method: GET
+order: 2000

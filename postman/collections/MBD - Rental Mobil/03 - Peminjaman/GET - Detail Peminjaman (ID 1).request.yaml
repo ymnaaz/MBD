@@ -1,0 +1,5 @@
+$kind: http-request
+description: Contoh melihat satu peminjaman. Ganti angka 1 dengan ID peminjaman yang ingin diperiksa.
+url: "{{base_url}}/api/peminjaman/1"
+method: GET
+order: 2000

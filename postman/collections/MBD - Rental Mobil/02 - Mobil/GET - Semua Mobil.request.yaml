@@ -1,0 +1,5 @@
+$kind: http-request
+description: Mengambil daftar mobil.
+url: "{{base_url}}/api/mobil"
+method: GET
+order: 1000

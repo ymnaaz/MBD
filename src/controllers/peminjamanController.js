@@ -1,224 +1,87 @@
-const db = require('../config/database');
 const PeminjamanModel = require('../models/PeminjamanModel');
 
-// =====================================================
-// GET SEMUA DATA PEMINJAMAN
-// Menggunakan View, bukan SELECT langsung ke tabel
-// =====================================================
-const getAll = async (req, res) => {
-    try {
-        const [rows] = await db.query(`
-            SELECT *
-            FROM view_peminjaman
-        `);
+const peminjamanController = {
+    // POST /api/peminjaman
+    create: async (req, res) => {
+        try {
+            const { id_pelanggan, id_mobil, id_pembayaran, tanggal_pinjam, tanggal_kembali } = req.body;
 
-        const data = rows.map(row => new PeminjamanModel(row));
+            if (!id_pelanggan || !id_mobil || !tanggal_pinjam || !tanggal_kembali) {
+                return res.status(400).json({
+                    status: 'ERROR',
+                    message: 'id_pelanggan, id_mobil, tanggal_pinjam, tanggal_kembali wajib diisi'
+                });
+            }
 
-        res.status(200).json({
-            success: true,
-            message: 'Data peminjaman berhasil diambil',
-            data
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Gagal mengambil data peminjaman',
-            error: error.message
-        });
-    }
-};
-
-
-// =====================================================
-// GET PEMINJAMAN BERDASARKAN ID
-// Tetap mengambil dari View
-// =====================================================
-const getById = async (req, res) => {
-    try {
-        const { id } = req.params;
-
-        const [rows] = await db.query(`
-            SELECT *
-            FROM view_peminjaman
-            WHERE id_peminjaman = ?
-        `, [id]);
-
-        if (rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Data peminjaman tidak ditemukan'
+            const result = await PeminjamanModel.create({
+                id_pelanggan,
+                id_mobil,
+                id_pembayaran: id_pembayaran || null,
+                tanggal_pinjam,
+                tanggal_kembali
             });
+
+            if (result.status === 'OK') {
+                res.status(201).json(result);
+            } else {
+                res.status(400).json(result);
+            }
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ status: 'ERROR', message: err.message });
         }
+    },
 
-        const data = new PeminjamanModel(rows[0]);
+    // GET /api/peminjaman
+    getAll: async (req, res) => {
+        try {
+            const data = await PeminjamanModel.getAll();
+            res.json({ status: 'OK', total: data.length, data });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ status: 'ERROR', message: err.message });
+        }
+    },
 
-        res.status(200).json({
-            success: true,
-            message: 'Data peminjaman berhasil ditemukan',
-            data
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Gagal mengambil data peminjaman',
-            error: error.message
-        });
+    // GET /api/peminjaman/:id
+    getById: async (req, res) => {
+        try {
+            const data = await PeminjamanModel.getById(req.params.id);
+            if (!data) {
+                return res.status(404).json({ status: 'ERROR', message: 'Peminjaman tidak ditemukan' });
+            }
+            res.json({ status: 'OK', data });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ status: 'ERROR', message: err.message });
+        }
+    },
+
+    // PUT /api/peminjaman/:id/kembali
+    kembalikan: async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { tanggal_pengembalian } = req.body;
+
+            if (!tanggal_pengembalian) {
+                return res.status(400).json({
+                    status: 'ERROR',
+                    message: 'tanggal_pengembalian wajib diisi'
+                });
+            }
+
+            const result = await PeminjamanModel.kembalikan(id, tanggal_pengembalian);
+
+            if (result.status === 'OK') {
+                res.json(result);
+            } else {
+                res.status(400).json(result);
+            }
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ status: 'ERROR', message: err.message });
+        }
     }
 };
 
-
-// =====================================================
-// MENAMBAHKAN PEMINJAMAN
-// Menggunakan Procedure tambah_peminjaman
-// Trigger berjalan otomatis di database
-// =====================================================
-const create = async (req, res) => {
-    try {
-        const {
-            id_pelanggan,
-            id_mobil,
-            id_pembayaran,
-            tanggal_pinjam,
-            tanggal_kembali
-        } = req.body;
-
-        if (
-            id_pelanggan === undefined ||
-            id_mobil === undefined ||
-            id_pembayaran === undefined ||
-            !tanggal_pinjam ||
-            !tanggal_kembali
-        ) {
-            return res.status(400).json({
-                success: false,
-                message: 'Data peminjaman belum lengkap'
-            });
-        }
-
-        // Memanggil Procedure
-        await db.query(`
-            CALL tambah_peminjaman(?, ?, ?, ?, ?)
-        `, [
-            id_pelanggan,
-            id_mobil,
-            id_pembayaran,
-            tanggal_pinjam,
-            tanggal_kembali
-        ]);
-
-        // Mengambil hasil terbaru dari View
-        const [rows] = await db.query(`
-            SELECT *
-            FROM view_peminjaman
-            ORDER BY id_peminjaman DESC
-            LIMIT 1
-        `);
-
-        const data = rows.length > 0
-            ? new PeminjamanModel(rows[0])
-            : null;
-
-        res.status(201).json({
-            success: true,
-            message: 'Peminjaman berhasil ditambahkan',
-            data
-        });
-
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Gagal menambahkan peminjaman',
-            error: error.message
-        });
-    }
-};
-
-
-// =====================================================
-// MENGHITUNG TOTAL SEWA
-// Menggunakan Function hitung_total_sewa
-// =====================================================
-const calculateTotalSewa = async (req, res) => {
-    try {
-        const {
-            id_mobil,
-            tanggal_pinjam,
-            tanggal_kembali
-        } = req.query;
-
-        if (!id_mobil || !tanggal_pinjam || !tanggal_kembali) {
-            return res.status(400).json({
-                success: false,
-                message: 'id_mobil, tanggal_pinjam, dan tanggal_kembali wajib diisi'
-            });
-        }
-
-        const [rows] = await db.query(`
-            SELECT hitung_total_sewa(?, ?, ?) AS total_sewa
-        `, [
-            id_mobil,
-            tanggal_pinjam,
-            tanggal_kembali
-        ]);
-
-        res.status(200).json({
-            success: true,
-            message: 'Total sewa berhasil dihitung',
-            data: rows[0]
-        });
-
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Gagal menghitung total sewa',
-            error: error.message
-        });
-    }
-};
-
-
-// =====================================================
-// MENGHITUNG DENDA
-// Menggunakan Function hitung_denda
-// =====================================================
-const calculateDenda = async (req, res) => {
-    try {
-        const { keterlambatan_hari } = req.query;
-
-        if (keterlambatan_hari === undefined) {
-            return res.status(400).json({
-                success: false,
-                message: 'keterlambatan_hari wajib diisi'
-            });
-        }
-
-        const [rows] = await db.query(`
-            SELECT hitung_denda(?) AS total_denda
-        `, [keterlambatan_hari]);
-
-        res.status(200).json({
-            success: true,
-            message: 'Denda berhasil dihitung',
-            data: rows[0]
-        });
-
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Gagal menghitung denda',
-            error: error.message
-        });
-    }
-};
-
-
-// =====================================================
-// EXPORT CONTROLLER
-// =====================================================
-module.exports = {
-    getAll,
-    getById,
-    create,
-    calculateTotalSewa,
-    calculateDenda
-};
+module.exports = peminjamanController;

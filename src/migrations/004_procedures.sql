@@ -1,7 +1,5 @@
--- =====================================================
--- MENGHAPUS PROCEDURE LAMA JIKA SUDAH ADA
--- =====================================================
 
+-- MENGHAPUS PROCEDURE LAMA JIKA SUDAH ADA
 DROP PROCEDURE IF EXISTS sp_mendaftarkan_pelanggan;
 DROP PROCEDURE IF EXISTS sp_lihat_daftar_mobil;
 DROP PROCEDURE IF EXISTS sp_tambah_peminjaman;
@@ -9,11 +7,7 @@ DROP PROCEDURE IF EXISTS sp_pengembalian_mobil;
 
 DELIMITER //
 
-
--- =====================================================
 -- PROCEDURE 1: MENDAFTARKAN DATA PELANGGAN
--- =====================================================
-
 CREATE PROCEDURE sp_mendaftarkan_pelanggan(
     IN p_nama VARCHAR(100),
     IN p_nomor_telepon VARCHAR(20),
@@ -49,10 +43,7 @@ BEGIN
         'Pelanggan berhasil didaftarkan' AS message;
 END //
 
-
--- =====================================================
 -- PROCEDURE 2: MELIHAT DAFTAR MOBIL
--- =====================================================
 
 CREATE PROCEDURE sp_lihat_daftar_mobil()
 BEGIN
@@ -61,11 +52,7 @@ BEGIN
     FROM view_daftar_mobil;
 END //
 
-
--- =====================================================
 -- PROCEDURE 3: MELAKUKAN PEMINJAMAN MOBIL
--- =====================================================
-
 CREATE PROCEDURE sp_tambah_peminjaman(
     IN p_id_pelanggan INT,
     IN p_id_mobil INT,
@@ -223,6 +210,7 @@ BEGIN
         v_id_mobil
     FROM view_peminjaman
     WHERE id_peminjaman = p_id_peminjaman
+    AND status_peminjaman = 'dipinjam'
     LIMIT 1;
 
     -- Memastikan tanggal pengembalian tidak sebelum tanggal pinjam

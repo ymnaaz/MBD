@@ -1,0 +1,10 @@
+$kind: http-request
+description: Body masih placeholder {}. Sebelum Send, isi sesuai field yang dibaca peminjamanController.create.
+url: "{{base_url}}/api/peminjaman"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: "{}"
+order: 3000

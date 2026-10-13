@@ -65,22 +65,3 @@ LEFT JOIN pembayaran py
     ON p.id_pembayaran = py.id_pembayaran;
 
 
--- View khusus transaksi pengembalian
-CREATE VIEW view_pengembalian AS
-SELECT
-    id_peminjaman,
-    id_pelanggan,
-    id_mobil,
-    nama_pelanggan,
-    nomor_plat,
-    merk,
-    model,
-    tanggal_pinjam,
-    tanggal_rencana_kembali,
-    tanggal_pengembalian,
-    keterlambatan_hari,
-    denda,
-    status_peminjaman,
-    catatan
-FROM view_peminjaman
-WHERE status_peminjaman = 'dikembalikan';
